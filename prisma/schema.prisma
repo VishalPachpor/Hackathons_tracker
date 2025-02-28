@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hackathon {
+  id                  String   @id @default(cuid())
+  devfolioId          String   @unique
+  title               String
+  description         String   @db.Text
+  startDate           DateTime
+  endDate             DateTime
+  registrationDeadline DateTime?
+  participantCount    Int      @default(0)
+  registrationUrl     String
+  status             String   // "upcoming", "ongoing", "ended"
+  location           String?
+  mode               String   // "online", "offline", "hybrid"
+  prizePool          String?
+  organizerName      String
+  organizerLogo      String?
+  tags               String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  lastSyncedAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model SyncLog {
+  id        String   @id @default(cuid())
+  status    String   // "success", "failed"
+  message   String?  @db.Text
+  createdAt DateTime @default(now())
+  error     String?  @db.Text
+} 

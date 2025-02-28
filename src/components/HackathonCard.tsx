@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -6,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Hackathon } from "@/types/hackathon";
+import { Hackathon } from "@prisma/client";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,6 +20,7 @@ interface HackathonCardProps {
 
 export function HackathonCard({ hackathon }: HackathonCardProps) {
   const [isAttending, setIsAttending] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const {
     title,
     description,
@@ -25,11 +28,10 @@ export function HackathonCard({ hackathon }: HackathonCardProps) {
     startDate,
     endDate,
     prizePool,
-    platform,
-    organizer,
+    organizerName,
     mode,
     tags,
-    website,
+    registrationUrl,
   } = hackathon;
 
   const handleAttend = () => {
@@ -39,14 +41,22 @@ export function HackathonCard({ hackathon }: HackathonCardProps) {
 
   return (
     <Card className="gradient-border flex flex-col overflow-hidden transition-all duration-300 hover:scale-[1.02]">
-      <div className="relative w-full h-48">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover brightness-90"
-          priority
-        />
+      <div className="relative w-full h-48 bg-slate-800">
+        {!imageError ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover brightness-90"
+            priority
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-400">
+            <span className="text-lg">{title}</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         <div className="absolute top-4 right-4 flex gap-2">
           <Badge
@@ -77,7 +87,7 @@ export function HackathonCard({ hackathon }: HackathonCardProps) {
           <h3 className="text-2xl font-bold tracking-tight glow-text">
             {title}
           </h3>
-          <p className="text-sm text-muted-foreground">by {organizer}</p>
+          <p className="text-sm text-muted-foreground">by {organizerName}</p>
         </div>
       </CardHeader>
 
@@ -96,10 +106,6 @@ export function HackathonCard({ hackathon }: HackathonCardProps) {
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Prize Pool:</span>
             <span className="text-primary glow-text">{prizePool}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">Platform:</span>
-            <span className="text-muted-foreground">{platform}</span>
           </div>
         </div>
 
@@ -133,7 +139,7 @@ export function HackathonCard({ hackathon }: HackathonCardProps) {
           {isAttending ? "Attending" : "Attend"}
         </Button>
         <Button variant="default" asChild className="flex-1">
-          <Link href={website} target="_blank" rel="noopener noreferrer">
+          <Link href={registrationUrl} target="_blank" rel="noopener noreferrer">
             Register
           </Link>
         </Button>

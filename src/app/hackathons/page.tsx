@@ -1,69 +1,83 @@
 "use client";
 
+import { useState } from "react";
+import { useHackathons } from "@/hooks/useHackathons";
 import { HackathonCard } from "@/components/HackathonCard";
 import { HackathonFilters } from "@/components/HackathonFilters";
-import { mockHackathons } from "@/data/mockHackathons";
-import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function HackathonsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPlatform, setSelectedPlatform] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedMode, setSelectedMode] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const platforms = Array.from(
-    new Set(mockHackathons.map((hackathon) => hackathon.platform))
-  );
+  const { hackathons, isLoading, error } = useHackathons({
+    status: selectedStatus || undefined,
+    mode: selectedMode || undefined,
+    tags: selectedTags.length ? selectedTags : undefined,
+  });
 
-  const filteredHackathons = mockHackathons.filter((hackathon) => {
-    const matchesSearch =
-      hackathon.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      hackathon.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesPlatform =
-      selectedPlatform === "all" || hackathon.platform === selectedPlatform;
-
-    const matchesStatus =
-      selectedStatus === "all" || hackathon.status === selectedStatus;
-
-    return matchesSearch && matchesPlatform && matchesStatus;
+  const filteredHackathons = hackathons.filter((hackathon) => {
+    if (
+      searchQuery &&
+      !hackathon.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
   });
 
   return (
-    <div className="container py-8">
-      <div className="space-y-8">
+    <main className="container py-8">
+      <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Hackathons</h1>
-          <p className="text-muted-foreground mt-2">
-            Browse and filter hackathons from various platforms
+          <h1 className="text-3xl font-bold mb-2">Hackathons</h1>
+          <p className="text-muted-foreground">
+            Discover and track the latest hackathons from Devfolio
           </p>
         </div>
 
         <HackathonFilters
-          platforms={platforms}
-          selectedPlatform={selectedPlatform}
-          onPlatformChange={setSelectedPlatform}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
+          selectedMode={selectedMode}
+          onModeChange={setSelectedMode}
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredHackathons.map((hackathon) => (
-            <HackathonCard key={hackathon.id} hackathon={hackathon} />
-          ))}
-          {filteredHackathons.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <h3 className="text-lg font-medium text-gray-900">
-                No hackathons found
-              </h3>
-              <p className="text-gray-500">
-                Try adjusting your filters or search query
-              </p>
-            </div>
-          )}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))
+            : filteredHackathons.map((hackathon) => (
+                <HackathonCard key={hackathon.id} hackathon={hackathon} />
+              ))}
         </div>
+
+        {!isLoading && filteredHackathons.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No hackathons found</p>
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 }

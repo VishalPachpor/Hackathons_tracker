@@ -10,23 +10,31 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 interface HackathonFiltersProps {
-  platforms: string[];
-  selectedPlatform: string;
-  onPlatformChange: (platform: string) => void;
+  platforms?: string[];
+  selectedPlatform?: string;
+  onPlatformChange?: (platform: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedStatus: string;
   onStatusChange: (status: string) => void;
+  selectedMode: string;
+  onModeChange: (mode: string) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
 export function HackathonFilters({
-  platforms,
-  selectedPlatform,
-  onPlatformChange,
+  platforms = [],
+  selectedPlatform = "all",
+  onPlatformChange = () => {},
   searchQuery,
   onSearchChange,
   selectedStatus,
   onStatusChange,
+  selectedMode,
+  onModeChange,
+  selectedTags,
+  onTagsChange,
 }: HackathonFiltersProps) {
   const chains = [
     "Ethereum",
